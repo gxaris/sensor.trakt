@@ -6,7 +6,7 @@ https://github.com/custom-cards/upcoming-media-card
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ACCESS_TOKEN, CONF_CLIENT_ID, CONF_CLIENT_SECRET
-from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse, ServiceCall, SupportsResponse
 from homeassistant.helpers import config_entry_oauth2_flow
 
 from .config_flow import TraktOAuth2FlowHandler
@@ -39,6 +39,38 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = coordinator
+
+    async def async_test_token_refresh(call: ServiceCall) -> dict[str, str]:
+        """Force an OAuth refresh and return only non-sensitive diagnostics."""
+        target_id = call.data.get("entry_id")
+        matches = [
+            candidate for candidate in hass.config_entries.async_entries("trakt")
+            if target_id is None or candidate.entry_id == target_id
+        ]
+        if len(matches) != 1:
+            return {"result": "error", "detail": "Specify entry_id when multiple Trakt entries exist"}
+        target = matches[0]
+        target_coordinator = target.runtime_data
+        oauth_session = target_coordinator.session
+        before = oauth_session.token
+        try:
+            refreshed = await oauth_session.implementation.async_refresh_token(before)
+            if not refreshed.get("access_token") or not refreshed.get("refresh_token"):
+                return {"result": "error", "detail": "Refresh response missing required token fields"}
+            hass.config_entries.async_update_entry(
+                target, data={**target.data, "token": refreshed}
+            )
+            target_coordinator.initialize()
+            await target_coordinator.async_request_refresh()
+        except Exception as err:
+            return {"result": "error", "detail": type(err).__name__}
+        return {"result": "success", "detail": "Token refreshed and sensor update requested"}
+
+    if not hass.services.has_service("trakt", "test_token_refresh"):
+        hass.services.async_register(
+            "trakt", "test_token_refresh", async_test_token_refresh,
+            supports_response=SupportsResponse.ONLY,
+        )
 
     async def async_test_token_refresh(call: ServiceCall) -> dict[str, str]:
         """Force an OAuth refresh and return only non-sensitive diagnostics."""
