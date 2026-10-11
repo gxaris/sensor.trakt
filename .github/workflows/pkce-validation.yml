@@ -1,0 +1,34 @@
+name: PKCE validation
+on:
+  push:
+    branches: [feature/trakt-pkce, master]
+  pull_request:
+    branches: [master]
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Compile Python sources
+        run: python -m compileall -q custom_components/trakt
+      - name: Validate PKCE wiring
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("custom_components/trakt")
+          m = json.loads((root / "manifest.json").read_text())
+          assert m["domain"] == "trakt"
+          implementation = (root / "oauth_impl.py").read_text()
+          flow = (root / "config_flow.py").read_text()
+          coordinator = (root / "coordinator.py").read_text()
+          assert "LocalOAuth2ImplementationWithPkce" in implementation
+          assert "vol.Optional(CONF_CLIENT_SECRET" in flow
+          assert "await self.session.async_ensure_token_valid()" in coordinator
+          assert 'self.session.token["access_token"]' in coordinator
+          assert 'self.config_entry.data.get(CONF_CLIENT_SECRET, "")' in coordinator
+          print("Static PKCE regression checks passed")
+          PY
