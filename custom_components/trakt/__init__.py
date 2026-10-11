@@ -21,7 +21,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     TraktOAuth2FlowHandler.async_register_implementation(
         hass,
         TraktOauth2Implementation(
-            hass, entry.data[CONF_CLIENT_ID], entry.data[CONF_CLIENT_SECRET]
+            hass, entry.data[CONF_CLIENT_ID], entry.data.get(CONF_CLIENT_SECRET, "")
         ),
     )
 
@@ -34,7 +34,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     session = config_entry_oauth2_flow.OAuth2Session(hass, entry, implementation)
     await session.async_ensure_token_valid()
 
-    coordinator = TraktDataUpdateCoordinator(hass, session.token[CONF_ACCESS_TOKEN])
+    coordinator = TraktDataUpdateCoordinator(hass, session)
     coordinator.initialize()
     await coordinator.async_config_entry_first_refresh()
 
