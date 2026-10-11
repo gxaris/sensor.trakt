@@ -51,7 +51,7 @@ class TraktOAuth2FlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
                 TraktOauth2Implementation(
                     self.hass,
                     user_input[CONF_CLIENT_ID],
-                    user_input[CONF_CLIENT_SECRET],
+                    user_input.get(CONF_CLIENT_SECRET, ""),
                 ),
             )
 
@@ -63,7 +63,7 @@ class TraktOAuth2FlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):
                 {
                     vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
                     vol.Required(CONF_CLIENT_ID): str,
-                    vol.Required(CONF_CLIENT_SECRET): str,
+                    vol.Optional(CONF_CLIENT_SECRET, default=""): str,
                 }
             ),
         )

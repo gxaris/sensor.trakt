@@ -8,6 +8,7 @@ from typing import Any
 
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET, CONF_EXCLUDE
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.config_entry_oauth2_flow import OAuth2Session
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 import homeassistant.util.dt as dt_util
@@ -27,11 +28,11 @@ class TraktDataUpdateCoordinator(DataUpdateCoordinator[str]):
     def __init__(
         self,
         hass: HomeAssistant,
-        token: str,
+        session: OAuth2Session,
     ) -> None:
         """Initialize trakt data."""
         self.hass = hass
-        self.token = token
+        self.session = session
         self.tv_shows: list[TVShow] = []
 
         super().__init__(
@@ -51,8 +52,10 @@ class TraktDataUpdateCoordinator(DataUpdateCoordinator[str]):
         """Return list of show titles to exclude."""
         return self.config_entry.options.get(CONF_EXCLUDE, [])
 
-    async def _async_update_data(self) -> list[dict[str,Any]]:
+    async def _async_update_data(self) -> list[dict[str, Any]]:
         """Update Trakt data."""
+        await self.session.async_ensure_token_valid()
+        self.initialize()
         card_json: list[dict[str, Any]] = [CARD_DEFAULT]
         try:
             self.tv_shows = await self.hass.async_add_executor_job(
@@ -129,9 +132,9 @@ class TraktDataUpdateCoordinator(DataUpdateCoordinator[str]):
 
     def initialize(self) -> None:
         """Initialize Trakt data."""
-        trakt.core.OAUTH_TOKEN = self.token
+        trakt.core.OAUTH_TOKEN = self.session.token["access_token"]
         trakt.core.CLIENT_ID = self.config_entry.data[CONF_CLIENT_ID]
-        trakt.core.CLIENT_SECRET = self.config_entry.data[CONF_CLIENT_SECRET]
+        trakt.core.CLIENT_SECRET = self.config_entry.data.get(CONF_CLIENT_SECRET, "")
 
 
 def days_until(date):

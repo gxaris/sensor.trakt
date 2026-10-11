@@ -1,8 +1,8 @@
 """Constants used in the Trakt integration."""
 DOMAIN = "trakt"
 
-OAUTH2_AUTHORIZE = "https://api.trakt.tv/oauth/authorize"
-OAUTH2_TOKEN = "https://api.trakt.tv/oauth/token"
+OAUTH2_AUTHORIZE = "https://auth.trakt.tv/oauth/authorize"
+OAUTH2_TOKEN = "https://auth.trakt.tv/oauth/token"
 
 ATTRIBUTION = "Data provided by trakt.tv"
 
