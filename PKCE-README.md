@@ -14,10 +14,10 @@ This branch is an experimental PKCE update to the upstream Trakt Home Assistant 
 3. Restart Home Assistant.
 4. Add the Trakt integration and enter the application's client ID; leave the secret blank for PKCE.
 
-**Status: candidate only.** Not yet validated against a live Trakt account/Home Assistant installation. Existing installations should be backed up before testing. Do not remove your existing integration until connectivity has been proven.
+**Validation:** Home Assistant Core 2026.9.4 user-confirmed PKCE login, populated calendar sensor, poster artwork and successful forced token refresh. Automatic expiry-triggered refresh remains unverified. Existing installations should be backed up before testing. Do not remove your existing integration until connectivity has been proven.
 
 ## Tests pending
 - Verify Home Assistant Core version supports `LocalOAuth2ImplementationWithPkce`.
-- Confirm Trakt authorizes S256 challenges and accepts the code verifier in the token exchange.
-- Validate authorization callback, initial sensor population, expiration/refresh, and restarts.
+- [x] Confirm Trakt authorizes S256 challenges and accepts the code verifier in the token exchange.
+- [x] Validate authorization callback and initial sensor population; forced refresh passed. Automatic expiry-triggered refresh and restart after token rotation still require monitoring.
 - Validate existing configuration entries and post-refresh calendar requests.
