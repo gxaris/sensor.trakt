@@ -52,7 +52,7 @@ class TraktDataUpdateCoordinator(DataUpdateCoordinator[str]):
         """Return list of show titles to exclude."""
         return self.config_entry.options.get(CONF_EXCLUDE, [])
 
-    async def _async_update_data(self) -> list[dict[str,Any]]:
+    async def _async_update_data(self) -> list[dict[str, Any]]:
         """Update Trakt data."""
         await self.session.async_ensure_token_valid()
         self.initialize()
@@ -134,7 +134,7 @@ class TraktDataUpdateCoordinator(DataUpdateCoordinator[str]):
         """Initialize Trakt data."""
         trakt.core.OAUTH_TOKEN = self.session.token["access_token"]
         trakt.core.CLIENT_ID = self.config_entry.data[CONF_CLIENT_ID]
-        trakt.core.CLIENT_SECRET = self.config_entry.data[CONF_CLIENT_SECRET]
+        trakt.core.CLIENT_SECRET = self.config_entry.data.get(CONF_CLIENT_SECRET, "")
 
 
 def days_until(date):
