@@ -7,7 +7,7 @@
       "user": {
         "data": {
           "client_id": "Client ID",
-          "client_secret": "Client secret"
+          "client_secret": "Client secret (optional with PKCE)"
         }
       }
     },
